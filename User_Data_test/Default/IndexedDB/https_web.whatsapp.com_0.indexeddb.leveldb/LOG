@@ -1,3 +1,22 @@
-2021/01/11-17:55:09.834 3778 Reusing MANIFEST C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2021/01/11-17:55:09.835 3778 Recovering log #161
-2021/01/11-17:55:09.856 3778 Reusing old log C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000161.log 
+2021/01/13-14:05:51.288 1a98 Reusing MANIFEST C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2021/01/13-14:05:51.288 1a98 Recovering log #193
+2021/01/13-14:05:51.359 1a98 Reusing old log C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000193.log 
+2021/01/13-14:06:07.735 e294 Level-0 table #203: started
+2021/01/13-14:06:08.042 e294 Level-0 table #203: 1204863 bytes OK
+2021/01/13-14:06:08.111 e294 Delete type=0 #193
+2021/01/13-14:06:09.115 10dcc Compacting 1@1 + 6@2 files
+2021/01/13-14:06:09.883 10dcc Generated table #204@1: 38866 keys, 2179015 bytes
+2021/01/13-14:06:10.458 10dcc Generated table #205@1: 85500 keys, 2234012 bytes
+2021/01/13-14:06:10.846 10dcc Generated table #206@1: 36944 keys, 2257238 bytes
+2021/01/13-14:06:11.578 10dcc Generated table #207@1: 51057 keys, 2251271 bytes
+2021/01/13-14:06:12.008 10dcc Generated table #208@1: 39980 keys, 2536197 bytes
+2021/01/13-14:06:12.172 10dcc Generated table #209@1: 1014 keys, 550131 bytes
+2021/01/13-14:06:12.172 10dcc Compacted 1@1 + 6@2 files => 12007864 bytes
+2021/01/13-14:06:12.252 10dcc compacted to: files[ 0 0 6 0 0 0 0 ]
+2021/01/13-14:06:12.253 10dcc Delete type=2 #195
+2021/01/13-14:06:12.253 10dcc Delete type=2 #196
+2021/01/13-14:06:12.253 10dcc Delete type=2 #197
+2021/01/13-14:06:12.259 10dcc Delete type=2 #198
+2021/01/13-14:06:12.259 10dcc Delete type=2 #199
+2021/01/13-14:06:12.260 10dcc Delete type=2 #200
+2021/01/13-14:06:12.260 10dcc Delete type=2 #203

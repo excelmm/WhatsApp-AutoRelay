@@ -1,3 +1,4 @@
+from pymongo.mongo_client import MongoClient
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -7,14 +8,20 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.chrome.options import Options
 from time import sleep
+import datetime
 import openpyxl as excel
 import re
 import sys
 
-INTERVAL = 20 # Seconds per cycle
-WAIT = 300 # Wait for elements to show
 CURRENT_NUMBER = "+62 812-9749-9150" # Insert your number here
 DATADIR = "test" # To indicate which datadir WhatsApp uses
+IGNORE_LIST = ["tpyramid", "uea", "universe"] + [CURRENT_NUMBER] # Contacts to ignore
+
+INTERVAL = 7 # Seconds per cycle
+WAIT = 300 # Wait for elements to show
+NAME_BLOCKS_TO_SCAN = 10 # How many name blocks to scan per loop
+MESSAGE_BLOCKS_TO_SCAN = 30 # How many message blocks to scan per chat
+MESSAGE_LENGTH_LIMIT = 500 # How many characters to limit when entering message in database
 
 # File Reader object
 class FileReader:
@@ -54,15 +61,54 @@ class NameBlock:
 # Message Block object
 class MessagesBlock:
 
+    name = None
+    element = None
+    time = None
+    hour = None
+    minute = None
+    state = None
+    text = None
+    repliedMessage = None
+    repliedTo = None
+    
+
     def __init__(self, name, element):
         self.name = name
         self.element = element
-    
-    def getMessages(self, fromLeft):
-        if fromLeft: return [i.text for i in self.element.find_elements_by_xpath \
-            (".//*[contains(@class, 'message-in')]//*[contains(@class, '_1VzZY')]")]
-        else: return [i.text for i in self.element.find_elements_by_xpath \
-            (".//*[contains(@class, 'message-out')]//*[contains(@class, '_1VzZY')]")]
+        self.timeElements = element.find_elements_by_xpath('.//*[contains(@class, "_2JNr-")]')
+
+        # If it is indeed a message block (it will have a time element)
+        if len(self.timeElements):
+            self.time = twelveToTwentyfour(self.timeElements[0].text)
+            self.hour = int(self.time[:2])
+            self.minute = int(self.time[3:])
+
+            # Check if message is incoming or outgoing
+            self.state = "incoming" if len(driver.find_elements_by_xpath('//*[contains(@class,"in")][@tabindex="0"]')) else "outgoing"
+
+            # Check if the message has text
+            self.textExists = True if len(element.find_elements_by_xpath('.//*[contains(@class, "_1wlJG")]')) else False
+            self.text = element.find_element_by_xpath('.//*[contains(@class, "_1wlJG")]').text if self.textExists else "Image/Video/File"
+
+            # Check if replied message exists
+            self.repliedMessageExists = True if len(element.find_elements_by_xpath('.//*[contains(@class, "i8New")]')) else False
+            self.repliedMessageIsText = True if len(element.find_elements_by_xpath('.//*[contains(@class, "_1Dook")]')) else False
+            if self.repliedMessageExists: 
+                self.repliedMessage = element.find_element_by_xpath('.//*[contains(@class, "i8New")]').text if self.repliedMessageIsText else "Image/Video/File"
+                self.repliedTo = self.repliedMessage.split('\n')[0]
+                self.repliedMessage = ''.join(self.repliedMessage.split('\n')[1:])
+            else: 
+                self.repliedMessage = None
+                self.repliedTo = None
+
+    def printMessage(self):
+        print("name: " + self.name)
+        print("time: " + self.time)
+        print("text: " + self.text)
+        print("state: " + self.state)
+        if self.repliedMessage: print("repliedMessage: " + self.repliedMessage)
+        if self.repliedTo: print("Replied to: " + self.repliedTo)
+        print()
 
 
 # Main function
@@ -71,17 +117,18 @@ def main():
     if len(sys.argv) == 1: sys.exit("Please enter arguments")
 
     # Setup driver and contacts
-    global driver, contacts, salesDict
+    global driver, collection, salesNames, contacts, salesDict
     driver = setupDriver()
+    collection = setupMongoDB()
     salesNames, salesNumbers, contacts, salesDict = setupContacts(sys.argv[1], sys.argv[2], sys.argv[3])
+    
+    # Start program (wait for blue double tick before starting)
     sendMessage(CURRENT_NUMBER, "starting")
-    input()
+    try: firstLoopMessages = int(input("Enter how many messages to get on first loop (also starts the program): "))
+    except: firstLoopMessages = NAME_BLOCKS_TO_SCAN
     firstLoop = True
     unreadNameBlocks = {}
     namesToRemove = []
-
-    getMessageBlock("Marvel")
-    exit()
 
     # Loop to keep program on
     while True:
@@ -92,17 +139,28 @@ def main():
             if not firstLoop: sleep(INTERVAL)
 
             # Get a large number of unread name blocks at first loop (perhaps after the program has not been running)
-            newUnreadNameBlocks = getAllUnreadNameBlocks(10) if not firstLoop else getAllUnreadNameBlocks(10)
+            newUnreadNameBlocks = getAllUnreadNameBlocks(NAME_BLOCKS_TO_SCAN) if not firstLoop else getAllUnreadNameBlocks(firstLoopMessages)
             unreadNameBlocks.update(newUnreadNameBlocks)
             firstLoop = False
+
             if len(unreadNameBlocks) == 0:
+                print("dsf")
+                nameBlocks = getAllNameBlocks(NAME_BLOCKS_TO_SCAN) if firstLoop else getAllNameBlocks(2)
+                for name in nameBlocks:
+                    unreadMessages = []
+                    for messageBlock in getAllMessagesBlocks(name, 5):
+                        if firstLoop: recordMessage(name, messageBlock)
+                        if not messageInDatabase(name, messageBlock): unreadMessages.append(messageBlock)
+                    numIncoming = len([i for i in unreadMessages if i.state == 'incoming'])
+                    numOutgoing = len(unreadMessages) - numIncoming
+                    forwardProgramDetected(name, numIncoming, True, salesNames)
+                    forwardProgramDetected(name, numOutgoing, False, salesNames)
+
                 continue
 
             for name, nameBlock in unreadNameBlocks.items():
 
                 namesToRemove.append(name)
-                # Ignore these contacts
-                if any(i in name.lower() for i in ["tpyramid", "uea", "universe"]): continue
 
                 # Get number of unread messages
                 numUnread = nameBlock.numUnreadMessages
@@ -207,6 +265,22 @@ def forwardCustomer(name, numUnread, fromLeft, numberSet):
     for numbers in numberSet:
         forwardMessage(CURRENT_NUMBER, 1, 0, False, numbers)
         forwardMessage(name, numUnread, 0, fromLeft, numbers)
+       
+# Forward messages from customer
+def forwardProgramDetected(name, numUnread, fromLeft, numberSet):
+    
+    if fromLeft:
+        if any(name in i for i in salesNames): # If incoming name found in salesList
+            forwardSales(name, numUnread, True, numberSet)
+        else:
+            forwardCustomer(name, numUnread, True, numberSet)
+    else:
+        recipientMessage = "[from Program to " + name + "]"
+        recipientMessage += "---" + contacts[name] + "---" if name in contacts else ""
+        sendMessage(CURRENT_NUMBER, recipientMessage)
+        for numbers in numberSet:
+            forwardMessage(CURRENT_NUMBER, 1, 0, False, numbers)
+            forwardMessage(name, numUnread, 0, False, numbers)
 
 # Forward messages
 def forwardMessage(name, numUnread, beginningIndex, fromLeft, numbers):
@@ -268,7 +342,48 @@ def forwardMessage(name, numUnread, beginningIndex, fromLeft, numbers):
     driver.find_element_by_xpath('//div[@class="_3FwbN"]/div/div').click()
     sleep(1)
 
-def getMessageBlock(name):
+# Records a message in the MongoDB cluster
+def recordMessage(name, messageBlock):
+    current = datetime.datetime.now()
+
+    message = {
+        "from": name,
+        "to": messageBlock.repliedTo,
+        "replyingToMessage": messageBlock.repliedMessage,
+        "state": messageBlock.state,
+        "content": messageBlock.text,
+        "hour": messageBlock.hour,
+        "minute": messageBlock.minute,
+        "day": current.day,
+        "month": current.month,
+        "year": current.year
+    }
+    
+    print(message)
+    if not messageInDatabase(name, messageBlock): 
+        collection.insert_one(message)
+        print("entry recorded.\n")
+    else:
+        print("message already exists.\n")
+
+# Finds a message in database
+def messageInDatabase(name, messageBlock):
+    message = {
+        "from": name,
+        "to": messageBlock.repliedTo,
+        "replyingToMessage": messageBlock.repliedMessage,
+        "state": messageBlock.state,
+        "content": messageBlock.text,
+        "hour": messageBlock.hour,
+        "minute": messageBlock.minute
+    }
+
+    print(collection.count_documents(message))
+    return bool(collection.count_documents(message))
+
+# Gets all message blocks from a chat
+def getAllMessagesBlocks(name, blocks):
+    result = []
     goToContact(name)
 
     try: WebDriverWait(driver, WAIT).until(EC.presence_of_element_located((By.XPATH,"//footer//*[@contenteditable='true']")))
@@ -276,12 +391,33 @@ def getMessageBlock(name):
 
     input_box = driver.find_element_by_xpath("//footer//*[@contenteditable='true']")
     current_element = input_box
-    for i in range(15):
+    for i in range(blocks):
         if not i: current_element.send_keys(Keys.TAB)
         else: current_element.send_keys(Keys.ARROW_UP)
         current_element = driver.switch_to_active_element()
-        try: print(current_element.find_element_by_xpath('.//*[contains(@class, "_1wlJG")]').text)
-        except: pass
+        result.append(MessagesBlock(name, current_element))
+    
+    return result
+
+# Gets all name blocks, based on how many blocks are checked
+def getAllNameBlocks(blocks):
+    nameSelector = driver.find_element_by_xpath("//*[@contenteditable='true']")
+    nameSelector.click()
+
+    nameBlocks = {}
+    next_element = nameSelector
+    for _ in range(blocks):
+        next_element.send_keys(Keys.ARROW_DOWN)
+        next_element = driver.switch_to_active_element()
+
+        try: nameBlock = NameBlock(next_element)
+        except NoSuchElementException: continue
+        
+        # Ignore these contacts
+        if any(i in nameBlock.name.lower() for i in IGNORE_LIST): continue
+
+        nameBlocks[nameBlock.name] = nameBlock
+    return nameBlocks
 
 # Gets all unread name blocks, based on how many blocks that are checked
 def getAllUnreadNameBlocks(blocks):
@@ -296,6 +432,9 @@ def getAllUnreadNameBlocks(blocks):
 
         try: nameBlock = NameBlock(next_element)
         except NoSuchElementException: continue
+        
+        # Ignore these contacts
+        if any(i in nameBlock.name.lower() for i in IGNORE_LIST): continue
 
         if nameBlock.unread:
             nameBlocks[nameBlock.name] = nameBlock
@@ -308,6 +447,25 @@ def goToContact(number):
     nameSelector.send_keys(number)
     sleep(1)
     nameSelector.send_keys(Keys.ENTER)
+
+# Converts 12-hour time to 24-hour time
+def twelveToTwentyfour(currenttime):
+    if "AM" in currenttime:
+        if len(currenttime) == 7:
+            currenttime = "0" + currenttime[0:4]
+        else:
+            currenttime = currenttime[0:5]
+    elif "PM" in currenttime:
+        if len(currenttime) == 7:
+            currenttime = str(int(currenttime[0]) + 12) + currenttime[1:4]
+        else:
+            currenttime = str(int(currenttime[0:2]) + 12) + currenttime[2:5]
+    if currenttime[0:2] == "12":
+        currenttime = "00" + currenttime[2:8]
+    if currenttime[0:2] == "24":
+        currenttime = "12" + currenttime[2:8]
+    
+    return currenttime
 
 # Sets up the driver for use
 def setupDriver():
@@ -328,6 +486,13 @@ def setupDriver():
         exit()
     
     return driver
+
+# Sets up the MongoDB collection for use
+def setupMongoDB():
+    cluster = MongoClient('mongodb+srv://admin:Test2000%40%40%40%40@waauto.oivp5.mongodb.net/waAuto?retryWrites=true&w=majority')
+    db = cluster['waAuto']
+    collection = db['messages']
+    return collection
 
 # Sets up the contacts
 def setupContacts(salesNamesFile, salesNumbersFile, contactsExcelFile):

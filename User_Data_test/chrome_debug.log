@@ -1,2 +1,2 @@
-[63268:53472:0111/175511.196:ERROR:device_event_log_impl.cc(211)] [17:55:11.197] USB: usb_device_handle_win.cc:1020 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
-[63268:53472:0111/180642.522:WARNING:pref_notifier_impl.cc(40)] Pref observer for media_router.cast_allow_all_ips found at shutdown.
+[55980:68412:0113/140551.269:INFO:CONSOLE(0)] "The Content Security Policy directive 'upgrade-insecure-requests' is ignored when delivered in a report-only policy.", source:  (0)
+[55980:68412:0113/140558.095:ERROR:device_event_log_impl.cc(211)] [14:05:58.095] USB: usb_device_handle_win.cc:1020 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
