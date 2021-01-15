@@ -1,3 +1,24 @@
-2021/01/13-13:55:41.704 1b34 Reusing MANIFEST C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2021/01/13-13:55:41.705 1b34 Recovering log #193
-2021/01/13-13:55:42.589 1b34 Reusing old log C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000193.log 
+2021/01/15-21:59:51.350 1a330 Reusing MANIFEST C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2021/01/15-21:59:51.351 1a330 Recovering log #258
+2021/01/15-21:59:51.461 1a330 Reusing old log C:\Users\Excel PC\Documents\GitHub\excelmm\WhatsApp-AutoRelay\User_Data_test\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000258.log 
+2021/01/15-22:23:38.971 1be00 Level-0 table #269: started
+2021/01/15-22:23:39.287 1be00 Level-0 table #269: 1491386 bytes OK
+2021/01/15-22:23:39.393 1be00 Delete type=0 #258
+2021/01/15-22:23:40.436 1be00 Compacting 1@1 + 7@2 files
+2021/01/15-22:23:40.884 1be00 Generated table #270@1: 38741 keys, 2177146 bytes
+2021/01/15-22:23:41.454 1be00 Generated table #271@1: 50010 keys, 2191303 bytes
+2021/01/15-22:23:42.125 1be00 Generated table #272@1: 82144 keys, 2283013 bytes
+2021/01/15-22:23:42.576 1be00 Generated table #273@1: 36478 keys, 2255503 bytes
+2021/01/15-22:23:43.141 1be00 Generated table #274@1: 66808 keys, 2250412 bytes
+2021/01/15-22:23:43.611 1be00 Generated table #275@1: 28469 keys, 2570507 bytes
+2021/01/15-22:23:43.956 1be00 Generated table #276@1: 1623 keys, 1595472 bytes
+2021/01/15-22:23:43.957 1be00 Compacted 1@1 + 7@2 files => 15323356 bytes
+2021/01/15-22:23:44.014 1be00 compacted to: files[ 0 0 7 0 0 0 0 ]
+2021/01/15-22:23:44.015 1be00 Delete type=2 #260
+2021/01/15-22:23:44.015 1be00 Delete type=2 #261
+2021/01/15-22:23:44.015 1be00 Delete type=2 #262
+2021/01/15-22:23:44.015 1be00 Delete type=2 #263
+2021/01/15-22:23:44.015 1be00 Delete type=2 #264
+2021/01/15-22:23:44.015 1be00 Delete type=2 #265
+2021/01/15-22:23:44.016 1be00 Delete type=2 #266
+2021/01/15-22:23:44.016 1be00 Delete type=2 #269

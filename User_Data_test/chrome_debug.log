@@ -1,2 +1,1 @@
-[55980:68412:0113/140551.269:INFO:CONSOLE(0)] "The Content Security Policy directive 'upgrade-insecure-requests' is ignored when delivered in a report-only policy.", source:  (0)
-[55980:68412:0113/140558.095:ERROR:device_event_log_impl.cc(211)] [14:05:58.095] USB: usb_device_handle_win.cc:1020 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
+[96496:105680:0115/222546.042:ERROR:device_event_log_impl.cc(211)] [22:25:46.042] USB: usb_device_handle_win.cc:1020 Failed to read descriptor from node connection: A device attached to the system is not functioning. (0x1F)
