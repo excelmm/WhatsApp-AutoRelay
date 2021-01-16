@@ -498,8 +498,11 @@ def record_message(name, message_block):
     # Debug
     print(message)
     if not message_in_database(name, message_block): 
-        collection.insert_one(message)
-        print("entry recorded.\n")
+        try: 
+            collection.insert_one(message)
+            print("entry recorded.\n")
+        except:
+            print("Error: could not record entry.\n")
     else:
         print("message already exists.\n")
 
@@ -518,7 +521,12 @@ def message_in_database(name, message_block):
     }
 
     # If the message exists in the database, return True
-    return bool(collection.count_documents(message))
+    try:
+        result = bool(collection.count_documents(message))
+        return result
+    except:
+        print("Could not lookup message in database.")
+        return True
 
 # Gets all message blocks from a chat
 def get_all_messages_block(name, blocks):
